@@ -4,24 +4,26 @@
 
 #include <QTRSensors.h>
 #include <ZumoReflectanceSensorArray.h>
-#define QTR_THRESHOLD  300 // this might need to be tuned for different
-                            //lighting conditions, surfaces, etc
-#define SPEED     100 
+#define QTR_THRESHOLD  300 
+#define NUM_SENSORS 6
 
 const int echoPin = 5;
 const int triggerPin = 6;
 const int maxDistance = 75;
 const int MAX_SPEED = 400;
-NewPing sonar(triggerPin, echoPin, maxDistance);
-ZumoMotors motors;
-Pushbutton button(ZUMO_BUTTON);
-#define NUM_SENSORS 6
+
 unsigned int sensor_values[NUM_SENSORS];
-int currentProgram;
-ZumoReflectanceSensorArray reflectanceSensors; //(QTR_NO_EMITTER_PIN);
+
+unsigned int currentProgram;
 
 bool snurUtAvHvitKant = false;
 bool snurMotVenstre = false;
+
+NewPing sonar(triggerPin, echoPin, maxDistance);
+ZumoMotors motors;
+Pushbutton button(ZUMO_BUTTON);
+ZumoReflectanceSensorArray reflectanceSensors; //(QTR_NO_EMITTER_PIN);
+
 void setup() {
   Serial.begin(9600);
   reflectanceSensors.init();
@@ -47,34 +49,33 @@ void simpleFollowBot(){
   unsigned int time = sonar.ping();
   float distance = sonar.convert_cm(time);
   if(distance == 0){
-    Serial.println("is 0");
+    // Avstanden er 0, la roboten snu
     motors.setSpeeds(-225, 225);
-    // Rotere
   }else{
-    Serial.println(distance);
+    // Avstanden er ikke 0, roboten finnes -> finn den
     if(isInBlack()){
-      // Kjør fram
+      // Vi er i svart område, kjør mot roboten
       snurUtAvHvitKant = false;
       motors.setSpeeds(400,400);
     }else{
+      // Vi er på hvit kant
       if(snurUtAvHvitKant){
+        // Vi holder på å komme oss bort fra den hvite kanten, fortsett å snu
         continueTurnOutOfBorder();
       }else{
+        // Vi har akkurat kommet til hvit kant, finn ut hvilken vei vi vil snu og start snuingen
         turnOutOfBorder(); 
       }
-      
     }
   }
   delay(50);
 }
 void continueTurnOutOfBorder(){
-  if(snurUtAvHvitKant){
-    // Har allerede begynt å snu
-    if(snurMotVenstre){
-      motors.setSpeeds(-250, 250);
-    }else{
-      motors.setSpeeds(250, -250);
-    }
+  // Fortsett å snu i retningen vi vil
+  if(snurMotVenstre){
+    motors.setSpeeds(-250, 250);
+  }else{
+    motors.setSpeeds(250, -250);
   }
 }
 void turnOutOfBorder(){
