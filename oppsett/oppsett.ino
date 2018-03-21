@@ -11,10 +11,11 @@ const int triggerPin = 6;
 const int maxDistance = 75;
 
 unsigned int sensor_values[6]; // There are a total of 6 sensors
-unsigned int currentProgram;
 
 bool snurUtAvHvitKant = false;
 bool snurMotVenstre = false;
+
+int forwardSpeed = 400;
 
 NewPing sonar(triggerPin, echoPin, maxDistance);
 ZumoMotors motors;
@@ -29,16 +30,13 @@ void setup() {
   
   button.waitForButton();
   
-  currentProgram = 0;
 }
 
 void loop() {
-  switch(currentProgram){
-    case 0:
-    default:
-      simpleFollowBot();
-      break;
-  }
+
+  // TODO: Update forwardSpeed on bluetooth response
+  
+  simpleFollowBot();
 }
 
 void simpleFollowBot(){
@@ -50,7 +48,7 @@ void simpleFollowBot(){
   }else if(isInBlack()){
       // Vi er i svart område, kjør mot roboten
       snurUtAvHvitKant = false;
-      motors.setSpeeds(400,400);
+      motors.setSpeeds(forwardSpeed,forwardSpeed);
   }else{
     // Vi er på hvit kant, det vi ser er utenfor banen
     if(snurUtAvHvitKant){
