@@ -17,7 +17,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print("Set name");
+  Serial.print("Set name ");
   Serial.println(BTName);
 
   btSerial.write(ATCommand);
