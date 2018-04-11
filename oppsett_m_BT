@@ -1,17 +1,20 @@
-#include <NewPing.h>
-#include <ZumoMotors.h>
-#include <Pushbutton.h>
+/*bluetooth*/
+#include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
-
-#include <QTRSensors.h>
-#include <ZumoReflectanceSensorArray.h>
-#define QTR_THRESHOLD  300
-
 
 #define txPin 2  // Tx pin on Bluetooth unit
 #define rxPin 1  // Rx pin on Bluetooth unit
 
 PLabBTSerial btSerial(txPin, rxPin);
+
+
+#include <NewPing.h>
+#include <ZumoMotors.h>
+#include <Pushbutton.h>
+
+#include <QTRSensors.h>
+#include <ZumoReflectanceSensorArray.h>
+#define QTR_THRESHOLD  300
 
 const int echoPin = 5;
 const int triggerPin = 6;
@@ -19,17 +22,20 @@ const int maxDistance = 75;
 
 unsigned int sensor_values[6]; // There are a total of 6 sensors
 
-int forwardSpeed = 0;
-
 bool snurUtAvHvitKant = false;
 bool snurMotVenstre = false;
 
 int forwardSpeed = 400;
 
+bool BTon = true;
+bool hasBeenPressed = false;
+
 NewPing sonar(triggerPin, echoPin, maxDistance);
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 ZumoReflectanceSensorArray reflectanceSensors; //(QTR_NO_EMITTER_PIN);
+
+
 
 char msg[100];
 void updateBTSerial() {
@@ -56,40 +62,70 @@ void BTSerialMessageReceived(String msgString,int msgValue) {
 
 }
 
+
+
+
 void setup() {
   
   Serial.begin(9600);
   btSerial.begin(9600); // Open serial communication to Bluetooth unit
-  
   // Setup reflectance sensor
   reflectanceSensors.init();
   
-  button.waitForButton();
-  updateBTSerial();
-  
+  BTon = true;
 }
 
 void loop() {
 
-  // TODO: Update forwardSpeed on bluetooth response
+  if(button.isPressed()){
+    Serial.println("Knapptrykket");
+    Serial.println(hasBeenPressed);
+    Serial.println(BTon);
+    if (hasBeenPressed){
+        
+      } else{
+        
+        BTon = !BTon;
+        hasBeenPressed = true;
+        }
+      
+    } else {
+      if (hasBeenPressed){
+         hasBeenPressed = false;
+        }
+      }
+  
+  if(BTon){
+    motors.setSpeeds(0,0);
+    
+    updateBTSerial();
+    
+   /* 
+    while (btSerial.available()) { // If input available from Bluetooth unit
+      char c = btSerial.read();    // Read character from from Bluetooth unit
+      Serial.println(c);             // Write that character to Serial Monitor
+      forwardSpeed = static_cast<int>(c);
+      
+      Serial.println(forwardSpeed);
+    }*/
+  }else{
   
   simpleFollowBot();
+  }
+  // TODO: Update forwardSpeed on bluetooth response
+  
 }
 
 void simpleFollowBot(){
   float distance = readDistance(); // Get disance from arduino sensor
-  
+  Serial.println(distance);
   if(distance == 0){
     // Avstanden er 0, la roboten snu
     motors.setSpeeds(-225, 225);
   }else if(isInBlack()){
       // Vi er i svart område, kjør mot roboten
       snurUtAvHvitKant = false;
-<<<<<<< HEAD
-      motors.setSpeeds(forwardSpeed, forwardSpeed);
-=======
       motors.setSpeeds(forwardSpeed,forwardSpeed);
->>>>>>> 58e0c56e480d22c8736a4db6c832045219d446b2
   }else{
     // Vi er på hvit kant, det vi ser er utenfor banen
     if(snurUtAvHvitKant){
@@ -140,4 +176,3 @@ float readDistance(){
   float distance = sonar.convert_cm(time);
   return distance;
 }
-
