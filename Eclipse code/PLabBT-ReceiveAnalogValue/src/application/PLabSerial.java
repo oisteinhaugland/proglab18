@@ -101,6 +101,7 @@ public class PLabSerial {
 		for(int i=0;i<serialportNames.length;i++) {
 			portName = serialportNames[i];
 			int plab_found = portName.indexOf("PLab");
+			int bt_found = portName.indexOf("Bluetooth");
 			int dialin_found = portName.indexOf("Dial-In");
 			if ((plab_found > -1) && (dialin_found == -1)) {
 				openPort(portName);
